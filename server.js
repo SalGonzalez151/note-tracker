@@ -36,6 +36,18 @@ app.post('/api/notes/', (req, res) => {
     })
 });
 
+app.delete('/api/notes/:id', (req, res) => {
+    fs.readFile('./db/db.json', (err, data) => {
+        if (err) throw err;
+        const deleteNote = JSON.parse(data);
+        const newNote = deleteNote.filter(note => note.id !== req.params.id);
+        fs.writeFile('./db/db.json', JSON.stringify(newNote, null, 2), err => {
+            if (err) { throw Error('Something went wrong...')}
+            else { console.log('Note has been deleted')}
+            res.json(newNote);
+        })
+    })
+})
 
 
 
