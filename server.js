@@ -15,16 +15,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-
+//home path to notes html page
 app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, './public/notes.html'));
 });
 
+//get path to api/notes
 app.get('/api/notes', (req, res) => {
     const notes = require('./db/db.json');
     res.json(notes)
 })
 
+//post path to api/notes and puts id on the notes
 app.post('/api/notes/', (req, res) => {
     const notes = require('./db/db.json');
     const newNotes = req.body;
@@ -40,7 +42,8 @@ app.delete('/api/notes/:id', (req, res) => {
     fs.readFile('./db/db.json', (err, data) => {
         if (err) throw err;
         const deleteNote = JSON.parse(data);
-        const newNote = deleteNote.filter(note => note.id !== req.params.id);
+        const idToDelete = parseInt(req.params.id);
+        const newNote = deleteNote.filter(note => note.id !== idToDelete);
         fs.writeFile('./db/db.json', JSON.stringify(newNote, null, 2), err => {
             if (err) { throw Error('Something went wrong...')}
             else { console.log('Note has been deleted')}
