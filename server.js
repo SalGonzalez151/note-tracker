@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs')
 const path = require('path');
+const { readFromFile, readAndRemove, readAndAppend } = require('./helpers/fsUtils')
 
 //function to create a random number for the notes
 function randomNumber() {
@@ -22,46 +23,23 @@ app.get('/notes', (req, res) => {
 
 //get path to api/notes
 app.get('/api/notes', (req, res) => {
-    const notes = require('./db/db.json');
-    res.json(notes)
+    readFromFile('./db/db.json').then(data => res.json(JSON.parse(data)));
 })
 
 //post path to api/notes and puts id on the notes
 app.post('/api/notes/', (req, res) => {
-    const notes = require('./db/db.json');
-    const newNotes = req.body;
-    newNotes.id = randomNumber();
-    notes.push(newNotes);
-    fs.writeFile('./db/db.json', JSON.stringify(notes, null, 2), err => {
-        if (err) throw err;
-        res.status(201).end()
-    })
+   const newNotes = {title: req.body.title, text: req.body.text, id: randomNumber()}
+   readAndAppend(newNotes, './db/db.json')
+   res.json(newNotes)
 });
 
 app.delete('/api/notes/:id', (req, res) => {
-    fs.readFile('./db/db.json', (err, data) => {
-        if (err) throw err;
-        const deleteNote = JSON.parse(data);
-        const idToDelete = parseInt(req.params.id);
-        const newNote = deleteNote.filter(note => note.id !== idToDelete);
-        fs.writeFile('./db/db.json', JSON.stringify(newNote, null, 2), err => {
-            if (err) { throw Error('Something went wrong...')}
-            else { console.log('Note has been deleted')}
-            res.json(newNote);
-        })
-    })
+    readAndRemove(req.params.id, './db/db.json');
+    res.json('note deleted')
 })
 
-
-
-
-
-
-
-
-
-
-
-
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
+})
 
 app.listen(PORT, () => console.log(`App listening at http://localhost:${PORT}`))
